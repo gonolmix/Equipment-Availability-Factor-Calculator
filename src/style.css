@@ -32,9 +32,6 @@ body {
 
 
 @media (max-width: 967px) {
-  .flex-container {
-    flex-direction: column;
-  }
 }
 
 .form-group {
@@ -107,7 +104,7 @@ body {
   background: #2980b9;
 }
 
-.resoult-block {
+.result-block {
   margin-top: 20px;
   background: #f8f9fa;
   padding: 40px 30px;
@@ -121,7 +118,7 @@ body {
   border: 1px solid #ddd;
 }
 
-.resoult-value {
+.result-value {
   font-size: 3.5em;
   font-weight: bold;
   margin-bottom: 15px;
@@ -129,39 +126,39 @@ body {
   color: #2c3e50;
 }
 
-.resoult-status {
+.result-status {
   font-size: 1.3em;
   font-weight: 600;
   color: #7f8c8d;
 }
 
-.resoult-block.high-reliability {
+.result-block.high-reliability {
   background: #e8f5e9;
   border-color: #a5d6a7;
 }
 
-.resoult-block.high-reliability .resoult-value,
-.resoult-block.high-reliability .resoult-status {
+.result-block.high-reliability .result-value,
+.result-block.high-reliability .result-status {
   color: #2e7d32;
 }
 
-.resoult-block.satisfactory {
+.result-block.satisfactory {
   background: #fff8e1;
   border-color: #ffe082;
 }
 
-.resoult-block.satisfactory .resoult-value,
-.resoult-block.satisfactory .resoult-status {
+.result-block.satisfactory .result-value,
+.result-block.satisfactory .result-status {
   color: #ff8f00;
 }
 
-.resoult-block.low-reliability {
+.result-block.low-reliability {
   background: #ffebee;
   border-color: #ef9a9a;
 }
 
-.resoult-block.low-reliability .resoult-value,
-.resoult-block.low-reliability .resoult-status {
+.result-block.low-reliability .result-value,
+.result-block.low-reliability .result-status {
   color: #c62828;
 }
 
@@ -219,21 +216,6 @@ body {
   background: #f8f9fa;
 }
 
-.status-high {
-  color: #2e7d32;
-  font-weight: 600;
-}
-
-.status-satisfactory {
-  color: #ff8f00;
-  font-weight: 600;
-}
-
-.status-low {
-  color: #c62828;
-  font-weight: 600;
-}
-
 #clear-history {
   width: 100%;
   padding: 14px;
@@ -253,7 +235,7 @@ body {
 
 /* адаптив */
 @media (max-width: 967px) {
-  .resoult-value {
+  .result-value {
     font-size: 2.5em;
   }
 }
@@ -268,11 +250,11 @@ body {
     margin-bottom: 20px;
   }
 
-  .resoult-value {
+  .result-value {
     font-size: 2em;
   }
 
-  .resoult-status {
+  .result-status {
     font-size: 1.1em;
   }
 
@@ -304,7 +286,7 @@ body {
     font-size: 15px;
   }
 
-  .resoult-value {
+  .result-value {
     font-size: 1.8em;
   }
 

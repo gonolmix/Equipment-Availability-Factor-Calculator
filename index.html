@@ -4,10 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Equipment Availability Factor Calculator</title>
-    <link rel="stylesheet" href="./src/style.css" />
   </head>
   <body>
       <div class="container">
+        <form id="calculator-form">
           <div class="input-section">
 
               <div class="form-group">
@@ -22,16 +22,17 @@
 
               </div>
 
-              <div class="error-message" id="error"></div>
+              <div class="error-message" id="error" role="alert" aria-live="polite"></div>
 
-              <button class="calculate-button" id="calculate" disabled>Calculate</button>
+              <button type="submit" class="calculate-button" id="calculate" disabled>Calculate</button>
 
           </div>
+        </form>
 
-          <div class="resoult-section">
-              <div class="resoult-block" id="resoult">
-                  <div class="resoult-value" id="kg-value">0.0000</div>
-                  <div class="resoult-status" id="status">Input values ​​for calculation</div>
+          <div class="result-section">
+              <div class="result-block" id="result">
+                  <div class="result-value" id="kg-value">0.0000</div>
+                  <div class="result-status" id="status">Input values ​​for calculation</div>
               </div>
           </div>
 

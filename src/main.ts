@@ -10,8 +10,6 @@ interface HistoryEntry
   timeStamp: string;
 }
 
-type StatusType = 'high' | 'satisfactory' | 'low';
-
 interface ValidationResult 
 {
   valid: boolean;
@@ -24,29 +22,35 @@ interface StatusInfo
   statusText: string;
 }
 
+// added form
+const form = document.getElementById('calculator-form') as HTMLFormElement;
+
 const tnInput = document.getElementById('tn') as HTMLInputElement;
 const tvInput = document.getElementById('tv') as HTMLInputElement;
 const calculateBtn = document.getElementById('calculate') as HTMLButtonElement;
-const resultBlock = document.getElementById('resoult') as HTMLDivElement;
+const resultBlock = document.getElementById('result') as HTMLDivElement;
 const kgValue = document.getElementById('kg-value') as HTMLDivElement;
 const statusText = document.getElementById('status') as HTMLDivElement;
 const errorDiv = document.getElementById('error') as HTMLDivElement;
 const historyBody = document.getElementById('history-body') as HTMLTableSectionElement;
 const clearHistoryBtn = document.getElementById('clear-history') as HTMLButtonElement;
 
+const STORAGE_KEY = 'calculator-history';
+const MAX_HISTORY_ENTRIES = 10;
+
 // validation function
-function ValidateInputs(): ValidationResult
+function validateInputs(): ValidationResult
 {
   const errors: string[] = [];
-  const tn = parseFloat(tnInput.value);
-  const tv = parseFloat(tvInput.value);
+  const tn = tnInput.valueAsNumber;
+  const tv = tvInput.valueAsNumber;
 
   // tn validation
   if (tnInput.value.trim() === '' || isNaN(tn)) {
     errors.push("Tн: please, input number");
   }
-  else if (tn <= 0){
-    errors.push("Tн must be > 0");
+  else if (tn < 0){
+    errors.push("Tн must be ≥ 0");
   }
   
   // tv validation
@@ -63,7 +67,7 @@ function ValidateInputs(): ValidationResult
 }
 
 // show error function
-function ShowError(field: HTMLInputElement, message: string): void 
+function showError(field: HTMLInputElement, message: string): void 
 {
   field.classList.add('error');
 
@@ -72,7 +76,7 @@ function ShowError(field: HTMLInputElement, message: string): void
 }
 
 // hide error function
-function ClearError(field: HTMLInputElement): void
+function clearError(field: HTMLInputElement): void
 {
   field.classList.remove('error');
 
@@ -82,14 +86,21 @@ function ClearError(field: HTMLInputElement): void
 }
 
 // calculation Kg function
-function CalculateKg (tn: number, tv: number): number
+function calculateKg(tn: number, tv: number): number
 {
+  if (tv < 0 || tn < 0) {
+    throw new Error('Tн and Tв must be ≥ 0');
+  }
+  if (tn === 0 && tv === 0) {
+    throw new Error('Tн and Tв cannot both be 0');
+  }
+
   const kg = tn / (tn + tv);
   return parseFloat(kg.toFixed(4));
 }
 
 // change color function
-function GetStatus(kg: number): StatusInfo 
+function getStatus(kg: number): StatusInfo 
 {
   if (kg >= 0.95) {
     return { 
@@ -110,34 +121,41 @@ function GetStatus(kg: number): StatusInfo
 }
 
 // get history function
-function GetHistory(): HistoryEntry[] 
+// added try/catch
+function getHistory(): HistoryEntry[] 
 {
-  const saved = localStorage.getItem('calculator-history');
+  try{
+  const saved = localStorage.getItem(STORAGE_KEY);
   return saved ? JSON.parse(saved) : [];
+  }
+  catch (error){
+    console.error('Error parsing history from localStorage:', error);
+    return [];
+  }
 }
 
 // add new entry to history function
-function SaveToHistory(entry: HistoryEntry): void
+function saveToHistory(entry: HistoryEntry): void
 {
-  const history = GetHistory();
+  const history = getHistory();
   history.unshift(entry);
 
-  if (history.length > 10){
-    history.length = 10;
+  if (history.length > MAX_HISTORY_ENTRIES){
+    history.length = MAX_HISTORY_ENTRIES; // 10
   }
 
-  localStorage.setItem('calculator-history', JSON.stringify(history));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
 }
 
 // remove history from local storage function
-function ClearHistory(): void
+function clearHistory(): void
 {
-  localStorage.removeItem('calculator-history');
+  localStorage.removeItem(STORAGE_KEY);
 }
 
 // render cells in history table
-function RenderHistory(): void {
-  const history = GetHistory();
+function renderHistory(): void {
+  const history = getHistory();
   historyBody.innerHTML = '';
   
   history.forEach(entry => {
@@ -156,7 +174,7 @@ function RenderHistory(): void {
     statusCell.textContent = entry.status;
     
     const dateCell = document.createElement('td');
-    dateCell.textContent = entry.timeStamp;
+    dateCell.textContent = formatTimestamp(entry.timeStamp);
     
     row.appendChild(tnCell);
     row.appendChild(tvCell);
@@ -169,24 +187,22 @@ function RenderHistory(): void {
 }
 
 // reset ui function
-function UpdateUI(): void 
+function updateUI(): void 
 {
-  const {valid, errors} = ValidateInputs();
+  const {valid, errors} = validateInputs();
 
-  ClearError(tnInput);
-  ClearError(tvInput);
+  clearError(tnInput);
+  clearError(tvInput);
 
   if (!valid)
   {
     const firstError = errors[0];
-    errorDiv.textContent = firstError;
-    errorDiv.style.display = 'block';
 
     if (firstError.includes("Tн")) {
-      ShowError(tnInput, firstError);
+      showError(tnInput, firstError);
     }
     else {
-      ShowError(tvInput, firstError);
+      showError(tvInput, firstError);
     }
 
     calculateBtn.disabled = true;
@@ -197,7 +213,7 @@ function UpdateUI(): void
 }
 
 // display result function
-function DisplayResult(kg: number, status: StatusInfo): void 
+function displayResult(kg: number, status: StatusInfo): void 
 {
   kgValue.textContent = kg.toFixed(4);
   statusText.textContent = status.statusText;
@@ -208,78 +224,72 @@ function DisplayResult(kg: number, status: StatusInfo): void
 }
 
 // calculate button function
-function HandleCalculate(): void 
+function handleCalculate(): void 
 {
-  const {valid} = ValidateInputs();
-  if (!valid) return;
+  const tn = tnInput.valueAsNumber;
+  const tv = tvInput.valueAsNumber;
 
-  const tn = parseFloat(tnInput.value);
-  const tv = parseFloat(tvInput.value);
+  const kg = calculateKg(tn, tv);
+  const status = getStatus(kg);
+  const entry = createHistoryEntry(tn, tv, kg, status.statusText);
 
-  const kg = CalculateKg(tn, tv);
-  const status = GetStatus(kg);
-
-  DisplayResult(kg, status);
-
-  const entry: HistoryEntry = {
-    tn,
-    tv,
-    kg,
-    status: status.statusText,
-    timeStamp: new Date().toLocaleString('ru-RU', {
-      day: '2-digit',
-      month: '2-digit',
-      year: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).replace(',', '')
-  };
-
-  SaveToHistory(entry);
-  RenderHistory();
+  displayResult(kg, status);
+  saveToHistory(entry);
+  renderHistory();
 }
 
 // clear history handler
-function HandleClearHistory(): void 
+function handleClearHistory(): void 
 {
   if (confirm("Clear all history?"))
   {
-    ClearHistory();
-    RenderHistory();
+    clearHistory();
+    renderHistory();
   }
 }
 
-function Initialize(): void 
+// rewrited for using form
+function initialize(): void 
 {
-    RenderHistory();
+    renderHistory();
 
-    tnInput.addEventListener('input', UpdateUI);
-    tvInput.addEventListener('input', UpdateUI);
+    tnInput.addEventListener('input', updateUI);
+    tvInput.addEventListener('input', updateUI);
 
-    calculateBtn.addEventListener('click', HandleCalculate);
-
-    tnInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter'){
-        e.preventDefault();
-        if (ValidateInputs().valid){
-          HandleCalculate();
-        }
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (validateInputs().valid) {
+        handleCalculate();
       }
     });
 
-    tvInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter'){
-        e.preventDefault();
-        if (ValidateInputs().valid){
-          HandleCalculate();
-        }
-      }
-    });
+    clearHistoryBtn.addEventListener('click', handleClearHistory);
 
-    clearHistoryBtn.addEventListener('click', HandleClearHistory);
-
-    UpdateUI();
+    updateUI();
 
 }
 
-document.addEventListener('DOMContentLoaded', Initialize);
+// separate create history entry function
+function createHistoryEntry(  tn: number, tv: number, kg: number, statusText: string): HistoryEntry {
+  return { 
+    tn,
+    tv,
+    kg,
+    status: statusText,
+    timeStamp: new Date().toISOString()
+  };
+}
+
+// format ISO date function
+function formatTimestamp(isoString: string): string {
+    const date = new Date(isoString);
+    return date.toLocaleString('ru-RU', {
+    day: '2-digit',
+    month: '2-digit',
+    year: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).replace(',', '');
+}
+
+document.addEventListener('DOMContentLoaded', initialize);
