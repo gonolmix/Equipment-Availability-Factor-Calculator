@@ -14,4 +14,5 @@ Simple Kг Calculator App
 
 ## Calculation Formula
 
-!(https://github.com/gonolmix/Equipment-Availability-Factor-Calculator/raw/calculator/images/formula.png)
+![Иллюстрация к проекту](https://github.com/gonolmix/Equipment-Availability-Factor-Calculator/raw/calculator/images/formula.png)
+
