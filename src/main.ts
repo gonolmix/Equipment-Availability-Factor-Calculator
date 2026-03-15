@@ -23,20 +23,23 @@ interface StatusInfo
 }
 
 // added form
-const form = document.getElementById('calculator-form') as HTMLFormElement;
+const form = getElement<HTMLFormElement>('calculator-form');
 
-const tnInput = document.getElementById('tn') as HTMLInputElement;
-const tvInput = document.getElementById('tv') as HTMLInputElement;
-const calculateBtn = document.getElementById('calculate') as HTMLButtonElement;
-const resultBlock = document.getElementById('result') as HTMLDivElement;
-const kgValue = document.getElementById('kg-value') as HTMLDivElement;
-const statusText = document.getElementById('status') as HTMLDivElement;
-const errorDiv = document.getElementById('error') as HTMLDivElement;
-const historyBody = document.getElementById('history-body') as HTMLTableSectionElement;
-const clearHistoryBtn = document.getElementById('clear-history') as HTMLButtonElement;
+const tnInput = getElement<HTMLInputElement>('tn');
+const tvInput = getElement<HTMLInputElement>('tv');
+const calculateBtn = getElement<HTMLButtonElement>('calculate');
+const resultBlock = getElement<HTMLDivElement>('result');
+const kgValue = getElement<HTMLDivElement>('kg-value');
+const statusText = getElement<HTMLDivElement>('status');
+const errorDiv = getElement<HTMLDivElement>('error');
+const historyBody = getElement<HTMLTableSectionElement>('history-body');
+const clearHistoryBtn = getElement<HTMLButtonElement>('clear-history');
 
 const STORAGE_KEY = 'calculator-history';
 const MAX_HISTORY_ENTRIES = 10;
+
+const KG_HIGH_THRESHOLD = 0.95;
+const KG_SATISFACTORY_THRESHOLD = 0.80;
 
 // validation function
 function validateInputs(): ValidationResult
@@ -47,17 +50,22 @@ function validateInputs(): ValidationResult
 
   // tn validation
   if (tnInput.value.trim() === '' || isNaN(tn)) {
-    errors.push("Tн: please, input number");
+    errors.push("Tn: please, input number");
   }
   else if (tn < 0){
-    errors.push("Tн must be ≥ 0");
+    errors.push("Tn must be ≥ 0");
   }
   
   // tv validation
   if (tvInput.value.trim() === '' || isNaN(tv)) {
-    errors.push("Tв: please, input number");
+    errors.push("Tv: please, input number");
   } else if (tv < 0) {
-    errors.push("Tв must be ≥ 0");
+    errors.push("Tv must be ≥ 0");
+  }
+
+  if (tn === 0 && tv === 0)
+  {
+    errors.push("Tn and Tv cannot both be 0");
   }
 
   return {
@@ -89,25 +97,25 @@ function clearError(field: HTMLInputElement): void
 function calculateKg(tn: number, tv: number): number
 {
   if (tv < 0 || tn < 0) {
-    throw new Error('Tн and Tв must be ≥ 0');
+    throw new Error('Tn and Tv must be ≥ 0');
   }
   if (tn === 0 && tv === 0) {
-    throw new Error('Tн and Tв cannot both be 0');
+    throw new Error('Tn and Tv cannot both be 0');
   }
 
   const kg = tn / (tn + tv);
-  return parseFloat(kg.toFixed(4));
+  return kg;
 }
 
 // change color function
 function getStatus(kg: number): StatusInfo 
 {
-  if (kg >= 0.95) {
+  if (kg >= KG_HIGH_THRESHOLD) {
     return { 
       colorClass: 'high-reliability', 
       statusText: 'High reliability' 
     };
-  } else if (kg >= 0.80) {
+  } else if (kg >= KG_SATISFACTORY_THRESHOLD) {
     return { 
       colorClass: 'satisfactory', 
       statusText: 'Satisfactory' 
@@ -120,13 +128,37 @@ function getStatus(kg: number): StatusInfo
   }
 }
 
+function isValidHistoryEntry(obj: any): obj is HistoryEntry 
+{
+  return (
+    obj &&
+    typeof obj === 'object' &&
+    typeof obj.tn === 'number' &&
+    typeof obj.tv === 'number' &&
+    typeof obj.kg === 'number' &&
+    typeof obj.status === 'string' &&
+    typeof obj.timeStamp === 'string'
+  );
+}
+
 // get history function
 // added try/catch
 function getHistory(): HistoryEntry[] 
 {
   try{
   const saved = localStorage.getItem(STORAGE_KEY);
-  return saved ? JSON.parse(saved) : [];
+
+  if (!saved) return [];
+
+  const parsed = JSON.parse(saved);
+
+  if (!Array.isArray(parsed)) {
+      console.warn('History data is not an array, resetting');
+      return [];
+  }
+
+  return parsed.filter(isValidHistoryEntry);
+
   }
   catch (error){
     console.error('Error parsing history from localStorage:', error);
@@ -198,7 +230,7 @@ function updateUI(): void
   {
     const firstError = errors[0];
 
-    if (firstError.includes("Tн")) {
+    if (firstError.includes("Tn")) {
       showError(tnInput, firstError);
     }
     else {
@@ -274,7 +306,7 @@ function createHistoryEntry(  tn: number, tv: number, kg: number, statusText: st
   return { 
     tn,
     tv,
-    kg,
+    kg: parseFloat(kg.toFixed(4)),
     status: statusText,
     timeStamp: new Date().toISOString()
   };
@@ -293,3 +325,12 @@ function formatTimestamp(isoString: string): string {
 }
 
 document.addEventListener('DOMContentLoaded', initialize);
+
+function getElement<T extends HTMLElement>(id: string): T 
+{
+  const element = document.getElementById(id);
+  if (!element){
+    throw new Error(`Element with id "${id}" not found in DOM`)
+  }
+  return element as T;
+}
