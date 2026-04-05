@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -17,7 +17,7 @@
               </div>
 
               <div class="form-group">
-                  <label for="tv">Тv (Recovery Time, h)</label>
+                  <label for="tv">Tv (Recovery Time, h)</label>
                   <input type="number" id="tv" name="tv" placeholder="Recovery Time, h" min="0" step="0.1" required aria-required="true" />
 
               </div>
@@ -32,7 +32,7 @@
           <div class="result-section">
               <div class="result-block" id="result">
                   <div class="result-value" id="kg-value">0.0000</div>
-                  <div class="result-status" id="status">Input values ​​for calculation</div>
+                  <div class="result-status" id="status">Input values for calculation</div>
               </div>
           </div>
 
@@ -40,20 +40,21 @@
               <h2>Calculation History</h2>
 
               <table id="history-table">
+                <caption class="sr-only">History of equipment availability factor calculations</caption>
                   <thead>
                       <tr>
-                          <th>Tn (h)</th>
-                          <th>Tv (h)</th>
-                          <th>Kg</th>
-                          <th>Status</th>
-                          <th>Date</th>
+                          <th scope="col">Tn (h)</th>
+                          <th scope="col">Tv (h)</th>
+                          <th scope="col">Kg</th>
+                          <th scope="col">Status</th>
+                          <th scope="col">Date</th>
                       </tr>
                   </thead>
                   <tbody id="history-body">
                   </tbody>
               </table>
 
-              <button id="clear-history">Clear</button>
+              <button type="button" id="clear-history" aria-label="Clear calculation history">Clear</button>
           </div>
       </div>
       <script type="module" src="/src/main.ts"></script>

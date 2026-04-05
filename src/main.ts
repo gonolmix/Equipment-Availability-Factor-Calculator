@@ -128,16 +128,26 @@ function getStatus(kg: number): StatusInfo
   }
 }
 
-function isValidHistoryEntry(obj: any): obj is HistoryEntry 
+function isValidHistoryEntry(obj: unknown): obj is HistoryEntry 
 {
+  if (obj == null){
+    return false;
+  }
+
+  if (typeof obj !== 'object' || Array.isArray(obj)) {
+    return false;
+  }
   return (
-    obj &&
-    typeof obj === 'object' &&
-    typeof obj.tn === 'number' &&
-    typeof obj.tv === 'number' &&
-    typeof obj.kg === 'number' &&
-    typeof obj.status === 'string' &&
-    typeof obj.timeStamp === 'string'
+    'tn' in obj &&
+    'tv' in obj &&
+    'kg' in obj &&
+    'status' in obj &&
+    'timeStamp' in obj &&
+    typeof (obj as any).tn === 'number' &&
+    typeof (obj as any).tv === 'number' &&
+    typeof (obj as any).kg === 'number' &&
+    typeof (obj as any).status === 'string' &&
+    typeof (obj as any).timeStamp === 'string'
   );
 }
 
@@ -315,13 +325,21 @@ function createHistoryEntry(  tn: number, tv: number, kg: number, statusText: st
 // format ISO date function
 function formatTimestamp(isoString: string): string {
     const date = new Date(isoString);
-    return date.toLocaleString('ru-RU', {
+
+    if (Number.isNaN(date.getTime())) {
+      return '-';
+    }
+
+    return date.toLocaleString('en-GB', {
     day: '2-digit',
     month: '2-digit',
     year: '2-digit',
     hour: '2-digit',
-    minute: '2-digit'
-  }).replace(',', '');
+    minute: '2-digit',
+    hour12: false
+  }).replace(/\//g, '.')
+  .replace(/(\d{2})\.(\d{2})\.(\d{2})/, '$1.$2.$3')
+  .replace(/, /, ' ');
 }
 
 document.addEventListener('DOMContentLoaded', initialize);
