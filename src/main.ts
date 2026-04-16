@@ -50,22 +50,22 @@ function validateInputs(): ValidationResult
 
   // tn validation
   if (tnInput.value.trim() === '' || isNaN(tn)) {
-    errors.push("Tn: please, input number");
+    errors.push(" Tn: please, input number");
   }
   else if (tn < 0){
-    errors.push("Tn must be ≥ 0");
+    errors.push(" Tn must be ≥ 0");
   }
   
   // tv validation
   if (tvInput.value.trim() === '' || isNaN(tv)) {
-    errors.push("Tv: please, input number");
+    errors.push(" Tv: please, input number");
   } else if (tv < 0) {
-    errors.push("Tv must be ≥ 0");
+    errors.push(" Tv must be ≥ 0");
   }
 
   if (tn === 0 && tv === 0)
   {
-    errors.push("Tn and Tv cannot both be 0");
+    errors.push(" Tn and Tv cannot both be 0");
   }
 
   return {
@@ -97,10 +97,10 @@ function clearError(field: HTMLInputElement): void
 function calculateKg(tn: number, tv: number): number
 {
   if (tv < 0 || tn < 0) {
-    throw new Error('Tn and Tv must be ≥ 0');
+    throw new Error(' Tn and Tv must be ≥ 0');
   }
   if (tn === 0 && tv === 0) {
-    throw new Error('Tn and Tv cannot both be 0');
+    throw new Error(' Tn and Tv cannot both be 0');
   }
 
   const kg = tn / (tn + tv);
@@ -179,6 +179,7 @@ function getHistory(): HistoryEntry[]
 // add new entry to history function
 function saveToHistory(entry: HistoryEntry): void
 {
+  try{
   const history = getHistory();
   history.unshift(entry);
 
@@ -187,6 +188,13 @@ function saveToHistory(entry: HistoryEntry): void
   }
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+  }
+  catch (error) {
+    console.warn('Failed to save history to localStorage:', error);
+
+    // ui alert
+    alert('History will not be saved due to browser limitations');
+  }
 }
 
 // remove history from local storage function
@@ -238,13 +246,13 @@ function updateUI(): void
 
   if (!valid)
   {
-    const firstError = errors[0];
+    const allErrors = errors.toString();
 
-    if (firstError.includes("Tn")) {
-      showError(tnInput, firstError);
+    if (allErrors.includes("Tn")) {
+      showError(tnInput, allErrors);
     }
     else {
-      showError(tvInput, firstError);
+      showError(tvInput, allErrors);
     }
 
     calculateBtn.disabled = true;
