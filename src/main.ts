@@ -251,7 +251,7 @@ function updateUI(): void
     if (allErrors.includes("Tn")) {
       showError(tnInput, allErrors);
     }
-    else {
+    if (allErrors.includes("Tv")) {
       showError(tvInput, allErrors);
     }
 
