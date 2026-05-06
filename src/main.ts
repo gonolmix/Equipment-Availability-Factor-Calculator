@@ -284,8 +284,9 @@ function handleCalculate(): void
   const entry = createHistoryEntry(tn, tv, kg, status.statusText);
 
   displayResult(kg, status);
-  saveToHistory(entry);
-  renderHistory();
+  //saveToHistory(entry);
+  //renderHistory();
+  saveHistoryWithRender(entry);
 }
 
 // clear history handler
@@ -359,4 +360,53 @@ function getElement<T extends HTMLElement>(id: string): T
     throw new Error(`Element with id "${id}" not found in DOM`)
   }
   return element as T;
+}
+
+function saveHistoryWithRender(entry: HistoryEntry): void {
+  try {
+    const history = getHistory();
+    
+    history.unshift(entry);
+    
+    if (history.length > MAX_HISTORY_ENTRIES) {
+      history.length = MAX_HISTORY_ENTRIES;
+    }
+    
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+    
+    renderHistoryFromData(history);
+    
+  } catch (error) {
+    console.warn('Failed to save history to localStorage:', error);
+    alert('History will not be saved due to browser limitations');
+    
+    renderHistory();
+  }
+}
+
+// render history from provided data (without reading from localStorage)
+function renderHistoryFromData(history: HistoryEntry[]): void {
+  historyBody.innerHTML = '';
+  
+  history.forEach(entry => {
+    const row = document.createElement('tr');
+    
+    const tnCell = document.createElement('td');
+    tnCell.textContent = entry.tn.toString();
+    
+    const tvCell = document.createElement('td');
+    tvCell.textContent = entry.tv.toString();
+    
+    const kgCell = document.createElement('td');
+    kgCell.textContent = entry.kg.toFixed(4);
+    
+    const statusCell = document.createElement('td');
+    statusCell.textContent = entry.status;
+    
+    const dateCell = document.createElement('td');
+    dateCell.textContent = formatTimestamp(entry.timeStamp);
+    
+    row.append(tnCell, tvCell, kgCell, statusCell, dateCell);
+    historyBody.appendChild(row);
+  });
 }
